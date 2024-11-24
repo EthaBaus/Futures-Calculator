@@ -5,59 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Futures TP/SL Calculator</title>
   <style>
+    /* General body styling */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       padding: 20px;
-      background-color: #f4f4f9;
-      color: #333;
+      background-color: #0d1117; /* GitHub dark mode background */
+      color: #c9d1d9; /* GitHub text color for readability */
     }
+
     h1 {
       text-align: center;
-      color: #444;
+      color: #58a6ff; /* GitHub blue for emphasis */
     }
+
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      background: white;
+      background: #161b22; /* Slightly lighter than the main background */
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border: 1px solid #21262d; /* Border matching GitHub's panels */
     }
+
     label {
       display: block;
       margin: 10px 0 5px;
+      font-weight: bold;
+      color: #c9d1d9;
     }
+
     input {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid #30363d; /* Input border */
       border-radius: 5px;
+      background-color: #0d1117; /* Match background */
+      color: #c9d1d9;
     }
+
+    input::placeholder {
+      color: #8b949e; /* Placeholder color for subtle hints */
+    }
+
     button {
       width: 100%;
       padding: 10px;
-      background: #28a745;
+      background: #238636; /* GitHub green for buttons */
       color: white;
       border: none;
       border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
+      font-weight: bold;
     }
+
     button:hover {
-      background: #218838;
+      background: #2ea043; /* Slightly lighter green for hover effect */
     }
+
     .output {
       margin-top: 20px;
       padding: 10px;
-      background: #f9f9f9;
-      border: 1px solid #ddd;
+      background: #161b22; /* Match container */
+      border: 1px solid #30363d; /* Match input border */
       border-radius: 5px;
+      color: #c9d1d9;
     }
+
     .warning {
-      color: red;
+      color: #ff7b72; /* GitHub warning red */
       font-weight: bold;
+    }
+
+    /* Highlighted text */
+    strong {
+      color: #58a6ff; /* GitHub blue for emphasis */
     }
   </style>
 </head>
