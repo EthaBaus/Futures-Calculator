@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futures TP/SL Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #444;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+    .output {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .warning {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Futures TP/SL Calculator</h1>
+  <div class="container">
+    <label for="entry">Entry Price (USDT):</label>
+    <input type="number" id="entry" placeholder="Enter price">
+
+    <label for="leverage">Leverage:</label>
+    <input type="number" id="leverage" placeholder="Enter leverage (default 1)" value="1">
+
+    <label for="tpPercent">Target Return Percentage (%):</label>
+    <input type="number" id="tpPercent" placeholder="Enter TP %" step="0.01">
+
+    <label for="slPercent">Loss Limit Percentage (%):</label>
+    <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01">
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    function calculate() {
+      // Get input values
+      const entry = parseFloat(document.getElementById('entry').value);
+      const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+      const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
+      const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
+
+      // Validate inputs
+      if (!entry || entry <= 0) {
+        document.getElementById('output').innerHTML = '<p class="warning">Please enter a valid Entry Price.</p>';
+        return;
+      }
+      if (tpPercent < 0 || slPercent < 0) {
+        document.getElementById('output').innerHTML = '<p class="warning">Percentages cannot be negative.</p>';
+        return;
+      }
+
+      // Calculate TP and SL prices
+      const tpPrice = entry * (1 + (tpPercent / (100 * leverage)));
+      const slPrice = entry * (1 - (slPercent / (100 * leverage)));
+
+      // Check for risk management warning (close to liquidation)
+      const liquidationWarning = slPrice <= entry * 0.9 ? 
+        '<p class="warning">Warning: Stop-Loss price is too close to the estimated liquidation price.</p>' : '';
+
+      // Display results
+      document.getElementById('output').innerHTML = `
+        ${liquidationWarning}
+        <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
+        <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
+      `;
+    }
+  </script>
+</body>
+</html>
