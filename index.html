@@ -162,6 +162,14 @@
   </style>
 </head>
 <body>
+  <div class="container">
+  <h2>Settings</h2>
+  <label for="sheetId">Your Google Sheet ID:</label>
+  <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
+  <button onclick="saveSheetId()">Save</button>
+  <p><a href="/auth" target="_blank">Sign in with Google</a></p>
+</div>
+
   <h1>Futures TP/SL Calculator with Journal</h1>
   <div class="container">
     <button class="reset-button" onclick="resetCalculator()">
@@ -276,6 +284,23 @@
       document.getElementById('margin').value = "";
       document.getElementById('results').innerHTML = "";
     }
+
+    
+   function saveSheetId() {
+    const sheetId = document.getElementById('sheetId').value;
+    if (!sheetId) {
+      alert('Please enter a valid Google Sheet ID.');
+      return;
+    }
+    fetch('/saveSheetId', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sheetId })
+    })
+      .then(() => alert('Google Sheet ID saved!'))
+      .catch(() => alert('Failed to save Google Sheet ID.'));
+  }
+
   </script>
 </body>
 </html>
