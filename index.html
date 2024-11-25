@@ -101,6 +101,9 @@
     <label for="slPercent">Loss Limit Percentage (%):</label>
     <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01">
 
+    <label for="margin">Margin (USDT):</label>
+    <input type="number" id="margin" placeholder="Enter margin amount">
+
     <button onclick="calculate()">Calculate</button>
 
     <div class="output" id="output"></div>
@@ -113,10 +116,11 @@
       const leverage = parseFloat(document.getElementById('leverage').value) || 1;
       const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
       const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
+      const margin = parseFloat(document.getElementById('margin').value);
 
       // Validate inputs
-      if (!entry || entry <= 0) {
-        document.getElementById('output').innerHTML = '<p class="warning">Please enter a valid Entry Price.</p>';
+      if (!entry || entry <= 0 || !margin || margin <= 0) {
+        document.getElementById('output').innerHTML = '<p class="warning">Please enter valid Entry Price and Margin values.</p>';
         return;
       }
       if (tpPercent < 0 || slPercent < 0) {
@@ -128,6 +132,10 @@
       const tpPrice = entry * (1 + (tpPercent / (100 * leverage)));
       const slPrice = entry * (1 - (slPercent / (100 * leverage)));
 
+      // Calculate Profit and Loss
+      const profit = margin * (tpPercent / 100);
+      const loss = margin * (slPercent / 100);
+
       // Check for risk management warning (close to liquidation)
       const liquidationWarning = slPrice <= entry * 0.9 ? 
         '<p class="warning">Warning: Stop-Loss price is too close to the estimated liquidation price.</p>' : '';
@@ -137,6 +145,8 @@
         ${liquidationWarning}
         <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
         <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
+        <p><strong>Potential Profit:</strong> ${profit.toFixed(2)} USDT</p>
+        <p><strong>Potential Loss:</strong> ${loss.toFixed(2)} USDT</p>
       `;
     }
   </script>
