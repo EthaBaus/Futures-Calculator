@@ -36,7 +36,7 @@
       color: #c9d1d9;
     }
 
-    input {
+    select, input {
       width: calc(100% - 22px); /* Adjust width to align with the button */
       padding: 10px;
       margin-bottom: 10px;
@@ -44,6 +44,10 @@
       border-radius: 5px;
       background-color: #0d1117; /* Match background */
       color: #c9d1d9;
+    }
+
+    select {
+      cursor: pointer;
     }
 
     input::placeholder {
@@ -89,6 +93,12 @@
 <body>
   <h1>Futures TP/SL Calculator</h1>
   <div class="container">
+    <label for="tradeType">Trade Type:</label>
+    <select id="tradeType">
+      <option value="long">Long</option>
+      <option value="short">Short</option>
+    </select>
+
     <label for="entry">Entry Price (USDT):</label>
     <input type="number" id="entry" placeholder="Enter price">
 
@@ -112,6 +122,7 @@
   <script>
     function calculate() {
       // Get input values
+      const tradeType = document.getElementById('tradeType').value; // Long or Short
       const entry = parseFloat(document.getElementById('entry').value);
       const leverage = parseFloat(document.getElementById('leverage').value) || 1;
       const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
@@ -128,17 +139,24 @@
         return;
       }
 
-      // Calculate TP and SL prices
-      const tpPrice = entry * (1 + (tpPercent / (100 * leverage)));
-      const slPrice = entry * (1 - (slPercent / (100 * leverage)));
+      // Calculate TP and SL prices based on trade type
+      let tpPrice, slPrice;
+      if (tradeType === "long") {
+        tpPrice = entry * (1 + (tpPercent / (100 * leverage)));
+        slPrice = entry * (1 - (slPercent / (100 * leverage)));
+      } else { // Short trade
+        tpPrice = entry * (1 - (tpPercent / (100 * leverage)));
+        slPrice = entry * (1 + (slPercent / (100 * leverage)));
+      }
 
       // Calculate Profit and Loss
       const profit = margin * (tpPercent / 100);
       const loss = margin * (slPercent / 100);
 
       // Check for risk management warning (close to liquidation)
-      const liquidationWarning = slPrice <= entry * 0.9 ? 
-        '<p class="warning">Warning: Stop-Loss price is too close to the estimated liquidation price.</p>' : '';
+      const liquidationWarning = slPrice <= entry * 0.9 && tradeType === "long"
+        || slPrice >= entry * 1.1 && tradeType === "short"
+        ? '<p class="warning">Warning: Stop-Loss price is too close to the estimated liquidation price.</p>' : '';
 
       // Display results
       document.getElementById('output').innerHTML = `
