@@ -49,26 +49,13 @@
       transform: scale(1.2);
     }
 
-    .reset-button:hover::after {
-      content: "Reset";
-      position: absolute;
-      top: -20px;
-      right: -10px;
-      background-color: #21262d;
-      color: white;
-      padding: 2px 5px;
-      font-size: 12px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    }
-
     label {
       display: block;
       margin: 10px 0 5px;
       font-weight: bold;
     }
 
-    input, select, button {
+    input, select {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
@@ -93,14 +80,33 @@
       color: #c9d1d9;
     }
 
-    button {
-      background: #238636;
-      cursor: pointer;
-      font-weight: bold;
+    .log-section {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
     }
 
-    button:hover {
-      background: #2ea043;
+    .log-section input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+
+    .log-button {
+      width: 50%;
+      padding: 10px;
+      background: #58a6ff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      margin-left: 10px;
+    }
+
+    .log-button:hover {
+      background: #79b8ff;
     }
 
     .output {
@@ -174,9 +180,7 @@
     <label for="margin">Margin (USDT):</label>
     <input type="number" id="margin" placeholder="Enter margin amount">
 
-    <button onclick="calculate()">Calculate</button>
-
-    <div class="output" id="results"></div>
+    <div id="results"></div>
   </div>
 
   <h2>Journal</h2>
@@ -198,7 +202,11 @@
   </div>
 
   <script>
-    async function calculate() {
+    function updateTradeTypeStyle(selectElement) {
+      selectElement.setAttribute("data-value", selectElement.value);
+    }
+
+    function calculate() {
       const tradeType = document.getElementById('tradeType').value;
       const ticker = document.getElementById('ticker').value;
       const entry = parseFloat(document.getElementById('entry').value);
@@ -212,10 +220,10 @@
         return;
       }
 
-      const tpPrice = tradeType === "long" 
+      const tpPrice = tradeType === "long"
         ? entry * (1 + tpPercent / (100 * leverage))
         : entry * (1 - tpPercent / (100 * leverage));
-      const slPrice = tradeType === "long" 
+      const slPrice = tradeType === "long"
         ? entry * (1 - slPercent / (100 * leverage))
         : entry * (1 + slPercent / (100 * leverage));
 
@@ -227,19 +235,29 @@
         <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
         <p><strong>Potential Profit:</strong> <span class="profit">${profit.toFixed(2)} USDT</span></p>
         <p><strong>Potential Loss:</strong> <span class="loss">${loss.toFixed(2)} USDT</span></p>
-        <button onclick="logTrade('${new Date().toISOString()}', '${ticker}', ${entry}, ${tpPrice}, ${slPrice}, ${margin})">
-          Log Trade
-        </button>
+        <div class="log-section">
+          <input type="checkbox" id="logCheckbox">
+          <button class="log-button" onclick="logTrade('${new Date().toISOString()}', '${ticker}', ${entry}, ${tpPrice}, ${slPrice}, ${margin})">
+            Log Trade
+          </button>
+        </div>
       `;
     }
 
     async function logTrade(date_time, ticker, entry_price, tp_price, sl_price, margin) {
+      const logCheckbox = document.getElementById('logCheckbox');
+      if (!logCheckbox.checked) {
+        alert('Please check the box to confirm logging the trade.');
+        return;
+      }
+
       const trade = { date_time, ticker, entry_price, tp_price, sl_price, margin, win_loss: '' };
       const response = await fetch('http://localhost:3000/trades', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(trade)
       });
+
       if (response.ok) {
         alert('Trade logged successfully!');
         loadJournal();
