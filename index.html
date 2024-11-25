@@ -38,11 +38,18 @@
       cursor: pointer;
       background: transparent;
       border: none;
+      width: 24px;
+      height: 24px;
     }
 
     .reset-button img {
-      width: 20px;
-      height: 20px;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.2s ease-in-out; /* Smooth hover animation */
+    }
+
+    .reset-button:hover img {
+      transform: scale(1.2); /* Enlarge by 20% */
     }
 
     .reset-button:hover::after {
@@ -66,17 +73,13 @@
     }
 
     select, input {
-      width: calc(100% - 22px); /* Adjust width to align with other elements */
+      width: calc(100% - 22px); /* Adjust width to align with the button */
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #30363d; /* Input border */
       border-radius: 5px;
       background-color: #0d1117; /* Match background */
       color: #c9d1d9;
-    }
-
-    select {
-      cursor: pointer;
     }
 
     select[data-value="long"] {
@@ -87,6 +90,11 @@
     select[data-value="short"] {
       background-color: #d73a49; /* Red for short */
       color: white;
+    }
+
+    select[data-value="select"] {
+      background-color: #0d1117; /* Default neutral color */
+      color: #c9d1d9;
     }
 
     input::placeholder {
@@ -148,7 +156,8 @@
     </button>
 
     <label for="tradeType">Trade Type:</label>
-    <select id="tradeType" onchange="updateTradeTypeStyle(this)">
+    <select id="tradeType" onchange="updateTradeTypeStyle(this)" data-value="select">
+      <option value="select" data-value="select">Select</option>
       <option value="long" data-value="long">Long</option>
       <option value="short" data-value="short">Short</option>
     </select>
@@ -181,19 +190,26 @@
 
     // Reset calculator fields
     function resetCalculator() {
-      document.getElementById("tradeType").value = "long";
+      const tradeType = document.getElementById("tradeType");
+      tradeType.value = "select";
+      updateTradeTypeStyle(tradeType);
+
       document.getElementById("entry").value = "";
       document.getElementById("leverage").value = "1";
       document.getElementById("tpPercent").value = "";
       document.getElementById("slPercent").value = "";
       document.getElementById("margin").value = "";
       document.getElementById("output").innerHTML = "";
-      updateTradeTypeStyle(document.getElementById("tradeType"));
     }
 
     // Perform calculations
     function calculate() {
       const tradeType = document.getElementById("tradeType").value;
+      if (tradeType === "select") {
+        document.getElementById("output").innerHTML = '<p class="warning">Please select a trade type.</p>';
+        return;
+      }
+
       const entry = parseFloat(document.getElementById("entry").value);
       const leverage = parseFloat(document.getElementById("leverage").value) || 1;
       const tpPercent = parseFloat(document.getElementById("tpPercent").value) || 0;
