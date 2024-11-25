@@ -27,6 +27,35 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       border: 1px solid #21262d; /* Border matching GitHub's panels */
+      position: relative;
+    }
+
+    /* Reset Button Styling */
+    .reset-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+    }
+
+    .reset-button img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .reset-button:hover::after {
+      content: "Reset";
+      position: absolute;
+      top: -20px;
+      right: -10px;
+      background-color: #21262d;
+      color: white;
+      padding: 2px 5px;
+      font-size: 12px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
     }
 
     label {
@@ -37,7 +66,7 @@
     }
 
     select, input {
-      width: calc(100% - 22px); /* Adjust width to align with the button */
+      width: calc(100% - 22px); /* Adjust width to align with other elements */
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #30363d; /* Input border */
@@ -48,6 +77,16 @@
 
     select {
       cursor: pointer;
+    }
+
+    select[data-value="long"] {
+      background-color: #238636; /* Green for long */
+      color: white;
+    }
+
+    select[data-value="short"] {
+      background-color: #d73a49; /* Red for short */
+      color: white;
     }
 
     input::placeholder {
@@ -84,6 +123,17 @@
       font-weight: bold;
     }
 
+    /* Highlighted profit/loss */
+    .profit {
+      color: #238636; /* Green for profit */
+      font-weight: bold;
+    }
+
+    .loss {
+      color: #d73a49; /* Red for loss */
+      font-weight: bold;
+    }
+
     /* Highlighted text */
     strong {
       color: #58a6ff; /* GitHub blue for emphasis */
@@ -93,10 +143,14 @@
 <body>
   <h1>Futures TP/SL Calculator</h1>
   <div class="container">
+    <button class="reset-button" onclick="resetCalculator()">
+      <img src="https://img.icons8.com/material-outlined/24/ffffff/delete.png" alt="Reset">
+    </button>
+
     <label for="tradeType">Trade Type:</label>
-    <select id="tradeType">
-      <option value="long">Long</option>
-      <option value="short">Short</option>
+    <select id="tradeType" onchange="updateTradeTypeStyle(this)">
+      <option value="long" data-value="long">Long</option>
+      <option value="short" data-value="short">Short</option>
     </select>
 
     <label for="entry">Entry Price (USDT):</label>
@@ -120,51 +174,54 @@
   </div>
 
   <script>
+    // Update trade type dropdown background
+    function updateTradeTypeStyle(selectElement) {
+      selectElement.setAttribute("data-value", selectElement.value);
+    }
+
+    // Reset calculator fields
+    function resetCalculator() {
+      document.getElementById("tradeType").value = "long";
+      document.getElementById("entry").value = "";
+      document.getElementById("leverage").value = "1";
+      document.getElementById("tpPercent").value = "";
+      document.getElementById("slPercent").value = "";
+      document.getElementById("margin").value = "";
+      document.getElementById("output").innerHTML = "";
+      updateTradeTypeStyle(document.getElementById("tradeType"));
+    }
+
+    // Perform calculations
     function calculate() {
-      // Get input values
-      const tradeType = document.getElementById('tradeType').value; // Long or Short
-      const entry = parseFloat(document.getElementById('entry').value);
-      const leverage = parseFloat(document.getElementById('leverage').value) || 1;
-      const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
-      const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
-      const margin = parseFloat(document.getElementById('margin').value);
+      const tradeType = document.getElementById("tradeType").value;
+      const entry = parseFloat(document.getElementById("entry").value);
+      const leverage = parseFloat(document.getElementById("leverage").value) || 1;
+      const tpPercent = parseFloat(document.getElementById("tpPercent").value) || 0;
+      const slPercent = parseFloat(document.getElementById("slPercent").value) || 0;
+      const margin = parseFloat(document.getElementById("margin").value);
 
-      // Validate inputs
-      if (!entry || entry <= 0 || !margin || margin <= 0) {
-        document.getElementById('output').innerHTML = '<p class="warning">Please enter valid Entry Price and Margin values.</p>';
-        return;
-      }
-      if (tpPercent < 0 || slPercent < 0) {
-        document.getElementById('output').innerHTML = '<p class="warning">Percentages cannot be negative.</p>';
+      if (!entry || !margin || margin <= 0) {
+        document.getElementById("output").innerHTML = '<p class="warning">Please enter valid Entry Price and Margin values.</p>';
         return;
       }
 
-      // Calculate TP and SL prices based on trade type
       let tpPrice, slPrice;
       if (tradeType === "long") {
-        tpPrice = entry * (1 + (tpPercent / (100 * leverage)));
-        slPrice = entry * (1 - (slPercent / (100 * leverage)));
-      } else { // Short trade
-        tpPrice = entry * (1 - (tpPercent / (100 * leverage)));
-        slPrice = entry * (1 + (slPercent / (100 * leverage)));
+        tpPrice = entry * (1 + tpPercent / (100 * leverage));
+        slPrice = entry * (1 - slPercent / (100 * leverage));
+      } else {
+        tpPrice = entry * (1 - tpPercent / (100 * leverage));
+        slPrice = entry * (1 + slPercent / (100 * leverage));
       }
 
-      // Calculate Profit and Loss
       const profit = margin * (tpPercent / 100);
       const loss = margin * (slPercent / 100);
 
-      // Check for risk management warning (close to liquidation)
-      const liquidationWarning = slPrice <= entry * 0.9 && tradeType === "long"
-        || slPrice >= entry * 1.1 && tradeType === "short"
-        ? '<p class="warning">Warning: Stop-Loss price is too close to the estimated liquidation price.</p>' : '';
-
-      // Display results
-      document.getElementById('output').innerHTML = `
-        ${liquidationWarning}
+      document.getElementById("output").innerHTML = `
         <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
         <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
-        <p><strong>Potential Profit:</strong> ${profit.toFixed(2)} USDT</p>
-        <p><strong>Potential Loss:</strong> ${loss.toFixed(2)} USDT</p>
+        <p><strong>Potential Profit:</strong> <span class="profit">${profit.toFixed(2)} USDT</span></p>
+        <p><strong>Potential Loss:</strong> <span class="loss">${loss.toFixed(2)} USDT</span></p>
       `;
     }
   </script>
