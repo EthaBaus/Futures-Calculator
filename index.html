@@ -56,7 +56,7 @@
     }
 
     input, select {
-      width: calc(100% - 20px); /* Adjusted width to align with Trade Type */
+      width: calc(100% - 20px); /* Ensures uniform size for all inputs */
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #30363d;
@@ -76,12 +76,12 @@
     }
 
     select[data-value="select"] {
-      background-color: #0d1117;
+      background-color: #0d1117; /* Default color for "Select" */
       color: #c9d1d9;
     }
 
     button {
-      width: 100%; /* Keep the Calculate button full width */
+      width: 100%; /* Full width for Calculate button */
       padding: 10px;
       background: #238636;
       color: white;
@@ -221,7 +221,12 @@
 
   <script>
     function updateTradeTypeStyle(selectElement) {
-      selectElement.setAttribute("data-value", selectElement.value);
+      const value = selectElement.value;
+      if (value === "select") {
+        selectElement.setAttribute("data-value", "select");
+      } else {
+        selectElement.setAttribute("data-value", value);
+      }
     }
 
     function calculate() {
@@ -263,57 +268,9 @@
       `;
     }
 
-    async function logTrade(date_time, ticker, entry_price, tp_price, sl_price, margin) {
-      const logCheckbox = document.getElementById('logCheckbox');
-      if (!logCheckbox.checked) return;
-
-      const trade = { date_time, ticker, entry_price, tp_price, sl_price, margin, win_loss: '' };
-      const response = await fetch('http://localhost:3000/trades', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(trade)
-      });
-
-      if (response.ok) loadJournal();
-    }
-
-    async function loadJournal() {
-      const response = await fetch('http://localhost:3000/trades');
-      const trades = await response.json();
-      const tableBody = document.querySelector('#journal tbody');
-      tableBody.innerHTML = '';
-      trades.forEach(trade => {
-        tableBody.innerHTML += `
-          <tr>
-            <td>${trade.date_time}</td>
-            <td>${trade.ticker}</td>
-            <td>${trade.entry_price.toFixed(2)}</td>
-            <td>${trade.tp_price.toFixed(2)}</td>
-            <td>${trade.sl_price.toFixed(2)}</td>
-            <td>${trade.margin.toFixed(2)}</td>
-            <td>
-              <select onchange="updateWinLoss(${trade.id}, this.value)">
-                <option value="" ${trade.win_loss === '' ? 'selected' : ''}></option>
-                <option value="Win" ${trade.win_loss === 'Win' ? 'selected' : ''}>Win</option>
-                <option value="Loss" ${trade.win_loss === 'Loss' ? 'selected' : ''}>Loss</option>
-              </select>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    async function updateWinLoss(id, win_loss) {
-      await fetch(`http://localhost:3000/trades`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, win_loss })
-      });
-      loadJournal();
-    }
-
     function resetCalculator() {
       document.getElementById('tradeType').value = "select";
+      document.getElementById('tradeType').setAttribute("data-value", "select");
       document.getElementById('ticker').value = "";
       document.getElementById('entry').value = "";
       document.getElementById('leverage').value = "1";
@@ -322,8 +279,6 @@
       document.getElementById('margin').value = "";
       document.getElementById('results').innerHTML = "";
     }
-
-    loadJournal();
   </script>
 </body>
 </html>
