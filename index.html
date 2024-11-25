@@ -38,8 +38,8 @@
       cursor: pointer;
       background: transparent;
       border: none;
-      width: 24px;
-      height: 24px;
+      width: 32px; /* Adjusted size */
+      height: 32px;
     }
 
     .reset-button img {
@@ -73,7 +73,8 @@
     }
 
     select, input {
-      width: calc(100% - 22px); /* Adjust width to align with the button */
+      width: 100%; /* Ensure full width to match all fields */
+      box-sizing: border-box; /* Include padding and border in the width */
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #30363d; /* Input border */
