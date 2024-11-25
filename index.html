@@ -5,163 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Futures TP/SL Calculator</title>
   <style>
-    /* General body styling */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       padding: 20px;
-      background-color: #0d1117; /* GitHub dark mode background */
-      color: #c9d1d9; /* GitHub text color */
+      background-color: #0d1117;
+      color: #c9d1d9;
     }
 
     h1 {
       text-align: center;
-      color: #58a6ff; /* GitHub blue */
+      color: #58a6ff;
     }
 
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      background: #161b22; /* Slightly lighter than the main background */
+      background: #161b22;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      border: 1px solid #21262d; /* Border matching GitHub's panels */
-      position: relative;
-    }
-
-    /* Reset Button Styling */
-    .reset-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      width: 32px; /* Adjusted size */
-      height: 32px;
-    }
-
-    .reset-button img {
-      width: 100%;
-      height: 100%;
-      transition: transform 0.2s ease-in-out; /* Smooth hover animation */
-    }
-
-    .reset-button:hover img {
-      transform: scale(1.2); /* Enlarge by 20% */
-    }
-
-    .reset-button:hover::after {
-      content: "Reset";
-      position: absolute;
-      top: -20px;
-      right: -10px;
-      background-color: #21262d;
-      color: white;
-      padding: 2px 5px;
-      font-size: 12px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
     }
 
     label {
       display: block;
       margin: 10px 0 5px;
       font-weight: bold;
-      color: #c9d1d9;
     }
 
-    select, input {
-      width: 100%; /* Ensure full width to match all fields */
-      box-sizing: border-box; /* Include padding and border in the width */
+    input, select, button {
+      width: 100%;
       padding: 10px;
       margin-bottom: 10px;
-      border: 1px solid #30363d; /* Input border */
+      border: 1px solid #30363d;
       border-radius: 5px;
-      background-color: #0d1117; /* Match background */
-      color: #c9d1d9;
-    }
-
-    select[data-value="long"] {
-      background-color: #238636; /* Green for long */
-      color: white;
-    }
-
-    select[data-value="short"] {
-      background-color: #d73a49; /* Red for short */
-      color: white;
-    }
-
-    select[data-value="select"] {
-      background-color: #0d1117; /* Default neutral color */
+      background-color: #0d1117;
       color: #c9d1d9;
     }
 
     input::placeholder {
-      color: #8b949e; /* Placeholder color for subtle hints */
+      color: #8b949e;
     }
 
     button {
-      width: 100%; /* Ensure the button remains full width */
-      padding: 10px;
-      background: #238636; /* GitHub green for buttons */
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
+      background: #238636;
       cursor: pointer;
       font-weight: bold;
     }
 
     button:hover {
-      background: #2ea043; /* Slightly lighter green for hover effect */
+      background: #2ea043;
     }
 
-    .output {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #30363d;
       padding: 10px;
-      background: #161b22; /* Match container */
-      border: 1px solid #30363d; /* Match input border */
-      border-radius: 5px;
-      color: #c9d1d9;
+      text-align: left;
     }
 
-    .warning {
-      color: #ff7b72; /* GitHub warning red */
-      font-weight: bold;
+    th {
+      background: #161b22;
+      color: #58a6ff;
     }
 
-    /* Highlighted profit/loss */
-    .profit {
-      color: #238636; /* Green for profit */
-      font-weight: bold;
-    }
-
-    .loss {
-      color: #d73a49; /* Red for loss */
-      font-weight: bold;
-    }
-
-    /* Highlighted text */
-    strong {
-      color: #58a6ff; /* GitHub blue */
+    td {
+      background: #0d1117;
     }
   </style>
 </head>
 <body>
   <h1>Futures TP/SL Calculator</h1>
   <div class="container">
-    <button class="reset-button" onclick="resetCalculator()">
-      <img src="https://img.icons8.com/material-outlined/24/ffffff/delete.png" alt="Reset">
-    </button>
-
-    <label for="tradeType">Trade Type:</label>
-    <select id="tradeType" onchange="updateTradeTypeStyle(this)" data-value="select">
-      <option value="select" data-value="select">Select</option>
-      <option value="long" data-value="long">Long</option>
-      <option value="short" data-value="short">Short</option>
-    </select>
+    <label for="ticker">Ticker:</label>
+    <input type="text" id="ticker" placeholder="e.g., LINKUSDT.P">
 
     <label for="entry">Entry Price (USDT):</label>
     <input type="number" id="entry" placeholder="Enter price">
@@ -175,72 +97,117 @@
     <label for="slPercent">Loss Limit Percentage (%):</label>
     <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01">
 
-    <label for="margin">Margin (USDT):</label>
-    <input type="number" id="margin" placeholder="Enter margin amount">
-
     <button onclick="calculate()">Calculate</button>
 
-    <div class="output" id="output"></div>
+    <div id="results"></div>
+  </div>
+
+  <h2 style="margin-top: 40px; color: #58a6ff;">Journal</h2>
+  <div class="container">
+    <table id="journal">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Ticker</th>
+          <th>Entry Price</th>
+          <th>TP Price</th>
+          <th>SL Price</th>
+          <th>Win/Loss</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
-    // Update trade type dropdown background
-    function updateTradeTypeStyle(selectElement) {
-      selectElement.setAttribute("data-value", selectElement.value);
-    }
+    async function calculate() {
+      const ticker = document.getElementById('ticker').value;
+      const entry = parseFloat(document.getElementById('entry').value);
+      const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+      const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
+      const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
 
-    // Reset calculator fields
-    function resetCalculator() {
-      const tradeType = document.getElementById("tradeType");
-      tradeType.value = "select";
-      updateTradeTypeStyle(tradeType);
-
-      document.getElementById("entry").value = "";
-      document.getElementById("leverage").value = "1";
-      document.getElementById("tpPercent").value = "";
-      document.getElementById("slPercent").value = "";
-      document.getElementById("margin").value = "";
-      document.getElementById("output").innerHTML = "";
-    }
-
-    // Perform calculations
-    function calculate() {
-      const tradeType = document.getElementById("tradeType").value;
-      if (tradeType === "select") {
-        document.getElementById("output").innerHTML = '<p class="warning">Please select a trade type.</p>';
+      if (!ticker || !entry) {
+        alert('Please enter valid ticker and entry price.');
         return;
       }
 
-      const entry = parseFloat(document.getElementById("entry").value);
-      const leverage = parseFloat(document.getElementById("leverage").value) || 1;
-      const tpPercent = parseFloat(document.getElementById("tpPercent").value) || 0;
-      const slPercent = parseFloat(document.getElementById("slPercent").value) || 0;
-      const margin = parseFloat(document.getElementById("margin").value);
+      const tpPrice = entry * (1 + tpPercent / (100 * leverage));
+      const slPrice = entry * (1 - slPercent / (100 * leverage));
 
-      if (!entry || !margin || margin <= 0) {
-        document.getElementById("output").innerHTML = '<p class="warning">Please enter valid Entry Price and Margin values.</p>';
-        return;
-      }
+      const date_time = new Date().toISOString();
 
-      let tpPrice, slPrice;
-      if (tradeType === "long") {
-        tpPrice = entry * (1 + tpPercent / (100 * leverage));
-        slPrice = entry * (1 - slPercent / (100 * leverage));
-      } else {
-        tpPrice = entry * (1 - tpPercent / (100 * leverage));
-        slPrice = entry * (1 + slPercent / (100 * leverage));
-      }
-
-      const profit = margin * (tpPercent / 100);
-      const loss = margin * (slPercent / 100);
-
-      document.getElementById("output").innerHTML = `
+      const resultHTML = `
         <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
         <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
-        <p><strong>Potential Profit:</strong> <span class="profit">${profit.toFixed(2)} USDT</span></p>
-        <p><strong>Potential Loss:</strong> <span class="loss">${loss.toFixed(2)} USDT</span></p>
+        <button onclick="logTrade('${date_time}', '${ticker}', ${entry}, ${tpPrice}, ${slPrice})">
+          Log Trade
+        </button>
       `;
+      document.getElementById('results').innerHTML = resultHTML;
     }
+
+    async function logTrade(date_time, ticker, entry_price, tp_price, sl_price) {
+      const trade = {
+        date_time,
+        ticker,
+        entry_price,
+        tp_price,
+        sl_price,
+        win_loss: '' // Initially blank, to be updated later
+      };
+
+      const response = await fetch('http://localhost:3000/trades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trade)
+      });
+
+      if (response.ok) {
+        alert('Trade logged successfully!');
+        loadJournal();
+      } else {
+        alert('Failed to log trade.');
+      }
+    }
+
+    async function loadJournal() {
+      const response = await fetch('http://localhost:3000/trades');
+      const trades = await response.json();
+
+      const tableBody = document.querySelector('#journal tbody');
+      tableBody.innerHTML = '';
+
+      trades.forEach(trade => {
+        tableBody.innerHTML += `
+          <tr>
+            <td>${trade.date_time}</td>
+            <td>${trade.ticker}</td>
+            <td>${trade.entry_price.toFixed(2)}</td>
+            <td>${trade.tp_price.toFixed(2)}</td>
+            <td>${trade.sl_price.toFixed(2)}</td>
+            <td>
+              <select onchange="updateWinLoss(${trade.id}, this.value)">
+                <option value="" ${trade.win_loss === '' ? 'selected' : ''}></option>
+                <option value="Win" ${trade.win_loss === 'Win' ? 'selected' : ''}>Win</option>
+                <option value="Loss" ${trade.win_loss === 'Loss' ? 'selected' : ''}>Loss</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function updateWinLoss(id, win_loss) {
+      await fetch(`http://localhost:3000/trades`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, win_loss })
+      });
+      loadJournal();
+    }
+
+    loadJournal();
   </script>
 </body>
 </html>
