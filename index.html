@@ -55,14 +55,15 @@
       font-weight: bold;
     }
 
-    input, select {
-      width: calc(100% - 20px); /* Ensures uniform size for all inputs */
+    input, select, .log-button {
+      width: 100%; /* Ensure uniform width */
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #30363d;
       border-radius: 5px;
       background-color: #0d1117;
       color: #c9d1d9;
+      box-sizing: border-box; /* Prevents overflow */
     }
 
     select[data-value="long"] {
@@ -81,7 +82,7 @@
     }
 
     button {
-      width: 100%; /* Full width for Calculate button */
+      width: 100%; /* Full width for the Calculate button */
       padding: 10px;
       background: #238636;
       color: white;
@@ -99,7 +100,7 @@
     .log-section {
       display: flex;
       align-items: center;
-      margin-top: 20px;
+      justify-content: space-between; /* Space out the checkbox and button */
     }
 
     .log-section input[type="checkbox"] {
@@ -108,17 +109,13 @@
     }
 
     .log-button {
-      width: 50%;
-      padding: 10px;
       background: #58a6ff;
       color: white;
-      border: none;
-      border-radius: 5px;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
       text-align: center;
-      margin-left: 10px;
+      width: 48%; /* Half the width of the container */
     }
 
     .log-button:hover {
