@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Futures TP/SL Calculator</title>
+  <title>Futures TP/SL Calculator with Journal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,7 +13,7 @@
       color: #c9d1d9;
     }
 
-    h1 {
+    h1, h2 {
       text-align: center;
       color: #58a6ff;
     }
@@ -25,6 +25,41 @@
       background: #161b22;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .reset-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+    }
+
+    .reset-button img {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .reset-button:hover img {
+      transform: scale(1.2);
+    }
+
+    .reset-button:hover::after {
+      content: "Reset";
+      position: absolute;
+      top: -20px;
+      right: -10px;
+      background-color: #21262d;
+      color: white;
+      padding: 2px 5px;
+      font-size: 12px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
     }
 
     label {
@@ -43,8 +78,19 @@
       color: #c9d1d9;
     }
 
-    input::placeholder {
-      color: #8b949e;
+    select[data-value="long"] {
+      background-color: #238636;
+      color: white;
+    }
+
+    select[data-value="short"] {
+      background-color: #d73a49;
+      color: white;
+    }
+
+    select[data-value="select"] {
+      background-color: #0d1117;
+      color: #c9d1d9;
     }
 
     button {
@@ -55,6 +101,23 @@
 
     button:hover {
       background: #2ea043;
+    }
+
+    .output {
+      margin-top: 20px;
+      padding: 10px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      color: #c9d1d9;
+    }
+
+    .profit {
+      color: #238636;
+    }
+
+    .loss {
+      color: #d73a49;
     }
 
     table {
@@ -80,8 +143,19 @@
   </style>
 </head>
 <body>
-  <h1>Futures TP/SL Calculator</h1>
+  <h1>Futures TP/SL Calculator with Journal</h1>
   <div class="container">
+    <button class="reset-button" onclick="resetCalculator()">
+      <img src="https://img.icons8.com/material-outlined/24/ffffff/delete.png" alt="Reset">
+    </button>
+
+    <label for="tradeType">Trade Type:</label>
+    <select id="tradeType" onchange="updateTradeTypeStyle(this)" data-value="select">
+      <option value="select" data-value="select">Select</option>
+      <option value="long" data-value="long">Long</option>
+      <option value="short" data-value="short">Short</option>
+    </select>
+
     <label for="ticker">Ticker:</label>
     <input type="text" id="ticker" placeholder="e.g., LINKUSDT.P">
 
@@ -97,12 +171,15 @@
     <label for="slPercent">Loss Limit Percentage (%):</label>
     <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01">
 
+    <label for="margin">Margin (USDT):</label>
+    <input type="number" id="margin" placeholder="Enter margin amount">
+
     <button onclick="calculate()">Calculate</button>
 
-    <div id="results"></div>
+    <div class="output" id="results"></div>
   </div>
 
-  <h2 style="margin-top: 40px; color: #58a6ff;">Journal</h2>
+  <h2>Journal</h2>
   <div class="container">
     <table id="journal">
       <thead>
@@ -112,6 +189,7 @@
           <th>Entry Price</th>
           <th>TP Price</th>
           <th>SL Price</th>
+          <th>Margin</th>
           <th>Win/Loss</th>
         </tr>
       </thead>
@@ -121,48 +199,47 @@
 
   <script>
     async function calculate() {
+      const tradeType = document.getElementById('tradeType').value;
       const ticker = document.getElementById('ticker').value;
       const entry = parseFloat(document.getElementById('entry').value);
       const leverage = parseFloat(document.getElementById('leverage').value) || 1;
       const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
       const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
+      const margin = parseFloat(document.getElementById('margin').value);
 
-      if (!ticker || !entry) {
-        alert('Please enter valid ticker and entry price.');
+      if (!ticker || !entry || tradeType === "select") {
+        alert('Please fill in all required fields.');
         return;
       }
 
-      const tpPrice = entry * (1 + tpPercent / (100 * leverage));
-      const slPrice = entry * (1 - slPercent / (100 * leverage));
+      const tpPrice = tradeType === "long" 
+        ? entry * (1 + tpPercent / (100 * leverage))
+        : entry * (1 - tpPercent / (100 * leverage));
+      const slPrice = tradeType === "long" 
+        ? entry * (1 - slPercent / (100 * leverage))
+        : entry * (1 + slPercent / (100 * leverage));
 
-      const date_time = new Date().toISOString();
+      const profit = margin * (tpPercent / 100);
+      const loss = margin * (slPercent / 100);
 
-      const resultHTML = `
+      document.getElementById('results').innerHTML = `
         <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
         <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
-        <button onclick="logTrade('${date_time}', '${ticker}', ${entry}, ${tpPrice}, ${slPrice})">
+        <p><strong>Potential Profit:</strong> <span class="profit">${profit.toFixed(2)} USDT</span></p>
+        <p><strong>Potential Loss:</strong> <span class="loss">${loss.toFixed(2)} USDT</span></p>
+        <button onclick="logTrade('${new Date().toISOString()}', '${ticker}', ${entry}, ${tpPrice}, ${slPrice}, ${margin})">
           Log Trade
         </button>
       `;
-      document.getElementById('results').innerHTML = resultHTML;
     }
 
-    async function logTrade(date_time, ticker, entry_price, tp_price, sl_price) {
-      const trade = {
-        date_time,
-        ticker,
-        entry_price,
-        tp_price,
-        sl_price,
-        win_loss: '' // Initially blank, to be updated later
-      };
-
+    async function logTrade(date_time, ticker, entry_price, tp_price, sl_price, margin) {
+      const trade = { date_time, ticker, entry_price, tp_price, sl_price, margin, win_loss: '' };
       const response = await fetch('http://localhost:3000/trades', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(trade)
       });
-
       if (response.ok) {
         alert('Trade logged successfully!');
         loadJournal();
@@ -174,10 +251,8 @@
     async function loadJournal() {
       const response = await fetch('http://localhost:3000/trades');
       const trades = await response.json();
-
       const tableBody = document.querySelector('#journal tbody');
       tableBody.innerHTML = '';
-
       trades.forEach(trade => {
         tableBody.innerHTML += `
           <tr>
@@ -186,6 +261,7 @@
             <td>${trade.entry_price.toFixed(2)}</td>
             <td>${trade.tp_price.toFixed(2)}</td>
             <td>${trade.sl_price.toFixed(2)}</td>
+            <td>${trade.margin.toFixed(2)}</td>
             <td>
               <select onchange="updateWinLoss(${trade.id}, this.value)">
                 <option value="" ${trade.win_loss === '' ? 'selected' : ''}></option>
@@ -205,6 +281,17 @@
         body: JSON.stringify({ id, win_loss })
       });
       loadJournal();
+    }
+
+    function resetCalculator() {
+      document.getElementById('tradeType').value = "select";
+      document.getElementById('ticker').value = "";
+      document.getElementById('entry').value = "";
+      document.getElementById('leverage').value = "1";
+      document.getElementById('tpPercent').value = "";
+      document.getElementById('slPercent').value = "";
+      document.getElementById('margin').value = "";
+      document.getElementById('results').innerHTML = "";
     }
 
     loadJournal();
