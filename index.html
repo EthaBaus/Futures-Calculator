@@ -253,4 +253,61 @@
 
       const trade = { date_time, ticker, entry_price, tp_price, sl_price, margin, win_loss: '' };
       const response = await fetch('http://localhost:3000/trades', {
-        method: 'POST
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trade)
+      });
+
+      if (response.ok) loadJournal();
+    }
+
+    async function loadJournal() {
+      const response = await fetch('http://localhost:3000/trades');
+      const trades = await response.json();
+      const tableBody = document.querySelector('#journal tbody');
+      tableBody.innerHTML = '';
+      trades.forEach(trade => {
+        tableBody.innerHTML += `
+          <tr>
+            <td>${trade.date_time}</td>
+            <td>${trade.ticker}</td>
+            <td>${trade.entry_price.toFixed(2)}</td>
+            <td>${trade.tp_price.toFixed(2)}</td>
+            <td>${trade.sl_price.toFixed(2)}</td>
+            <td>${trade.margin.toFixed(2)}</td>
+            <td>
+              <select onchange="updateWinLoss(${trade.id}, this.value)">
+                <option value="" ${trade.win_loss === '' ? 'selected' : ''}></option>
+                <option value="Win" ${trade.win_loss === 'Win' ? 'selected' : ''}>Win</option>
+                <option value="Loss" ${trade.win_loss === 'Loss' ? 'selected' : ''}>Loss</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function updateWinLoss(id, win_loss) {
+      await fetch(`http://localhost:3000/trades`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, win_loss })
+      });
+      loadJournal();
+    }
+
+    function resetCalculator() {
+      document.getElementById('tradeType').value = "select";
+      document.getElementById('ticker').value = "";
+      document.getElementById('entry').value = "";
+      document.getElementById('leverage').value = "1";
+      document.getElementById('tpPercent').value = "";
+      document.getElementById('slPercent').value = "";
+      document.getElementById('margin').value = "";
+      document.getElementById('results').innerHTML = "";
+    }
+
+    loadJournal();
+  </script>
+</body>
+</html>
