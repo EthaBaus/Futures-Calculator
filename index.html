@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Futures TP/SL Calculator with Journal</title>
   <style>
-    /* Styling remains unchanged */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
@@ -56,7 +55,7 @@
       font-weight: bold;
     }
 
-    input, select, .log-button {
+    input, select, button {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
@@ -64,10 +63,25 @@
       border-radius: 5px;
       background-color: #0d1117;
       color: #c9d1d9;
+      box-sizing: border-box;
+    }
+
+    select[data-value="long"] {
+      background-color: #238636;
+      color: white;
+    }
+
+    select[data-value="short"] {
+      background-color: #d73a49;
+      color: white;
+    }
+
+    select[data-value="select"] {
+      background-color: #0d1117;
+      color: #c9d1d9;
     }
 
     button {
-      padding: 10px;
       background: #238636;
       color: white;
       border: none;
@@ -81,29 +95,20 @@
       background: #2ea043;
     }
 
-    .log-section {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .log-section input[type="checkbox"] {
-      margin-right: 10px;
-      transform: scale(1.2);
-    }
-
-    .log-button {
-      background: #58a6ff;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
+    .auth-links {
       text-align: center;
-      width: 48%;
+      margin: 10px 0;
     }
 
-    .log-button:hover {
-      background: #79b8ff;
+    .auth-links a {
+      color: #58a6ff;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 10px;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
     }
 
     table {
@@ -126,30 +131,24 @@
     td {
       background: #0d1117;
     }
-
-    .auth-container {
-      margin-bottom: 20px;
-    }
-
-    .auth-container button {
-      width: 48%;
-    }
   </style>
 </head>
 <body>
   <h1>Futures TP/SL Calculator with Journal</h1>
 
   <!-- Authentication Section -->
-  <div class="auth-container container">
+  <div class="container">
     <h2>Authentication</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
-    <div style="display: flex; justify-content: space-between;">
-      <button onclick="signUp()">Sign Up</button>
-      <button onclick="signIn()">Sign In</button>
+    <div class="auth-links">
+      <a href="#" onclick="signUp()">Sign Up</a>
+      <a href="#" onclick="signIn()">Sign In</a>
+      <a href="#" onclick="resetPassword()">Forgot Password?</a>
     </div>
   </div>
 
+  <!-- Calculator Section -->
   <div class="container">
     <button class="reset-button" onclick="resetCalculator()">
       <img src="https://img.icons8.com/material-outlined/24/ffffff/delete.png" alt="Reset">
@@ -169,16 +168,16 @@
     <input type="number" id="entry" placeholder="Enter price">
 
     <label for="leverage">Leverage:</label>
-    <input type="number" id="leverage" placeholder="Enter leverage" value="1">
+    <input type="number" id="leverage" placeholder="Enter leverage (default 1)" value="1">
 
     <label for="tpPercent">Target Return Percentage (%):</label>
-    <input type="number" id="tpPercent" placeholder="Enter TP %">
+    <input type="number" id="tpPercent" placeholder="Enter TP %" step="0.01">
 
     <label for="slPercent">Loss Limit Percentage (%):</label>
-    <input type="number" id="slPercent" placeholder="Enter SL %">
+    <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01">
 
     <label for="margin">Margin (USDT):</label>
-    <input type="number" id="margin" placeholder="Enter margin">
+    <input type="number" id="margin" placeholder="Enter margin amount">
 
     <button onclick="calculate()">Calculate</button>
 
@@ -203,10 +202,8 @@
     </table>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
   <script>
+    // Firebase Config (unchanged)
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -217,6 +214,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // Authentication Functions
     function signUp() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -233,23 +231,53 @@
         .catch(err => alert(err.message));
     }
 
-    function logTrade(dateTime, ticker, entry, tpPrice, slPrice, margin) {
-      const trade = {
-        date_time: dateTime,
-        ticker,
-        entry_price: entry,
-        tp_price: tpPrice,
-        sl_price: slPrice,
-        margin,
-        win_loss: null
-      };
+    function resetPassword() {
+      const email = document.getElementById('email').value;
+      if (!email) {
+        alert('Please enter your email to reset the password.');
+        return;
+      }
+      auth.sendPasswordResetEmail(email)
+        .then(() => alert('Password reset email sent!'))
+        .catch(err => alert(err.message));
+    }
 
-      db.collection('trades').add(trade)
-        .then(() => {
-          document.getElementById('logCheckbox').checked = true;
-          alert('Trade logged successfully!');
-        })
-        .catch(err => alert('Error logging trade: ' + err.message));
+    // Calculator Functions
+    function updateTradeTypeStyle(selectElement) {
+      const value = selectElement.value;
+      selectElement.setAttribute("data-value", value);
+    }
+
+    function calculate() {
+      const tradeType = document.getElementById('tradeType').value;
+      const ticker = document.getElementById('ticker').value;
+      const entry = parseFloat(document.getElementById('entry').value);
+      const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+      const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
+      const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
+      const margin = parseFloat(document.getElementById('margin').value);
+
+      if (!ticker || tradeType === "select" || isNaN(entry)) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      const tpPrice = tradeType === "long"
+        ? entry * (1 + tpPercent / (100 * leverage))
+        : entry * (1 - tpPercent / (100 * leverage));
+      const slPrice = tradeType === "long"
+        ? entry * (1 - slPercent / (100 * leverage))
+        : entry * (1 + slPercent / (100 * leverage));
+
+      const profit = margin * (tpPercent / 100);
+      const loss = margin * (slPercent / 100);
+
+      document.getElementById('results').innerHTML = `
+        <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
+        <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
+        <p><strong>Potential Profit:</strong> <span style="color: #238636;">${profit.toFixed(2)} USDT</span></p>
+        <p><strong>Potential Loss:</strong> <span style="color: #d73a49;">${loss.toFixed(2)} USDT</span></p>
+      `;
     }
   </script>
 </body>
