@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Futures TP/SL Calculator</title>
+  <title>Futures TP/SL Calculator with Journal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -136,7 +136,7 @@
   </style>
 </head>
 <body>
-  <h1>Futures TP/SL Calculator</h1>
+  <h1>Futures TP/SL Calculator with Journal</h1>
 
   <!-- Authentication Section -->
   <div class="container">
@@ -144,9 +144,9 @@
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <div class="auth-links">
-      <a href="#" onclick="signUp()">Sign Up</a>
-      <a href="#" onclick="signIn()">Sign In</a>
-      <a href="#" onclick="resetPassword()">Forgot Password?</a>
+      <a href="javascript:void(0)" onclick="signUp()">Sign Up</a>
+      <a href="javascript:void(0)" onclick="signIn()">Sign In</a>
+      <a href="javascript:void(0)" onclick="resetPassword()">Forgot Password?</a>
     </div>
   </div>
 
@@ -206,10 +206,6 @@
       apiKey: "AIzaSyBcO4eJCLyyDcvEfKtqbYPTsn3rNPK5xtw",
       authDomain: "trading-journal-emm.firebaseapp.com",
       projectId: "trading-journal-emm",
-      storageBucket: "trading-journal-emm.firebasestorage.app",
-      messagingSenderId: "219067165137",
-      appId: "1:219067165137:web:b30c816cc63eee92e198f0",
-      measurementId: "G-V7VXL7LNNM"
     };
 
     // Initialize Firebase
@@ -223,7 +219,6 @@
       const password = document.getElementById('password').value;
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
         alert('Sign-Up Successful! Please verify your email.');
         // Optionally send email verification here
       } catch (error) {
@@ -237,7 +232,6 @@
       const password = document.getElementById('password').value;
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
         alert('Sign-In Successful!');
       } catch (error) {
         alert(error.message);
