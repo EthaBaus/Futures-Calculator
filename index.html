@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Futures TP/SL Calculator with Journal</title>
+  <title>Futures TP/SL Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -110,27 +110,6 @@
       text-decoration: underline;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #30363d;
-      padding: 10px;
-      text-align: left;
-    }
-
-    th {
-      background: #161b22;
-      color: #58a6ff;
-    }
-
-    td {
-      background: #0d1117;
-    }
-
     .log-section {
       display: flex;
       align-items: center;
@@ -157,7 +136,7 @@
   </style>
 </head>
 <body>
-  <h1>Futures TP/SL Calculator with Journal</h1>
+  <h1>Futures TP/SL Calculator</h1>
 
   <!-- Authentication Section -->
   <div class="container">
@@ -213,24 +192,13 @@
     </div>
   </div>
 
-  <h2>Journal</h2>
   <div class="container">
-    <table id="journal">
-      <thead>
-        <tr>
-          <th>Date & Time</th>
-          <th>Ticker</th>
-          <th>Entry Price</th>
-          <th>TP Price</th>
-          <th>SL Price</th>
-          <th>Margin</th>
-          <th>Win/Loss</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <a href="journal.html" style="color: #58a6ff; text-decoration: none;">View Your Journal</a>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -267,6 +235,11 @@
       auth.sendPasswordResetEmail(email)
         .then(() => alert('Password reset email sent!'))
         .catch(err => alert(err.message));
+    }
+
+    function updateTradeTypeStyle(selectElement) {
+      const value = selectElement.value;
+      selectElement.setAttribute("data-value", value);
     }
 
     function calculate() {
