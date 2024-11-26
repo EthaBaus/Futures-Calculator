@@ -103,7 +103,6 @@
     .auth-links a {
       color: #58a6ff;
       text-decoration: none;
-      font-weight: bold;
       margin: 0 10px;
     }
 
@@ -130,6 +129,30 @@
 
     td {
       background: #0d1117;
+    }
+
+    .log-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .log-section input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+
+    .log-button {
+      width: 48%;
+      background: #58a6ff;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .log-button:hover {
+      background: #79b8ff;
     }
   </style>
 </head>
@@ -182,6 +205,12 @@
     <button onclick="calculate()">Calculate</button>
 
     <div id="results"></div>
+
+    <div class="log-section">
+      <input type="checkbox" id="logCheckbox">
+      <label for="logCheckbox">Log this trade</label>
+      <button class="log-button" onclick="logTrade()">Log Trade</button>
+    </div>
   </div>
 
   <h2>Journal</h2>
@@ -203,7 +232,6 @@
   </div>
 
   <script>
-    // Firebase Config (unchanged)
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -214,7 +242,6 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Authentication Functions
     function signUp() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -240,12 +267,6 @@
       auth.sendPasswordResetEmail(email)
         .then(() => alert('Password reset email sent!'))
         .catch(err => alert(err.message));
-    }
-
-    // Calculator Functions
-    function updateTradeTypeStyle(selectElement) {
-      const value = selectElement.value;
-      selectElement.setAttribute("data-value", value);
     }
 
     function calculate() {
@@ -278,6 +299,40 @@
         <p><strong>Potential Profit:</strong> <span style="color: #238636;">${profit.toFixed(2)} USDT</span></p>
         <p><strong>Potential Loss:</strong> <span style="color: #d73a49;">${loss.toFixed(2)} USDT</span></p>
       `;
+    }
+
+    function logTrade() {
+      const tradeType = document.getElementById('tradeType').value;
+      const ticker = document.getElementById('ticker').value;
+      const entry = parseFloat(document.getElementById('entry').value);
+      const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+      const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
+      const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
+      const margin = parseFloat(document.getElementById('margin').value);
+
+      const tpPrice = tradeType === "long"
+        ? entry * (1 + tpPercent / (100 * leverage))
+        : entry * (1 - tpPercent / (100 * leverage));
+      const slPrice = tradeType === "long"
+        ? entry * (1 - slPercent / (100 * leverage))
+        : entry * (1 + slPercent / (100 * leverage));
+
+      const trade = {
+        date_time: new Date().toISOString(),
+        ticker,
+        entry_price: entry.toFixed(4),
+        tp_price: tpPrice.toFixed(4),
+        sl_price: slPrice.toFixed(4),
+        margin: margin.toFixed(2),
+        win_loss: null,
+      };
+
+      db.collection('trades').add(trade)
+        .then(() => {
+          document.getElementById('logCheckbox').checked = true;
+          alert('Trade logged successfully!');
+        })
+        .catch(err => alert('Error logging trade: ' + err.message));
     }
   </script>
 </body>
