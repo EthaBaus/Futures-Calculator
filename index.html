@@ -144,9 +144,9 @@
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <div class="auth-links">
-      <a href="javascript:void(0)" onclick="signUp()">Sign Up</a>
-      <a href="javascript:void(0)" onclick="signIn()">Sign In</a>
-      <a href="javascript:void(0)" onclick="resetPassword()">Forgot Password?</a>
+      <button onclick="signUp()">Sign Up</button>
+      <button onclick="signIn()">Sign In</button>
+      <button onclick="resetPassword()">Forgot Password?</button>
     </div>
   </div>
 
@@ -197,9 +197,10 @@
   </div>
 
   <script type="module">
+    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -224,9 +225,8 @@
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         alert('Sign-Up Successful! Please verify your email.');
-        // Optionally send email verification here
       } catch (error) {
-        alert(error.message);
+        alert('Error during sign up: ' + error.message);
       }
     }
 
@@ -238,7 +238,7 @@
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         alert('Sign-In Successful!');
       } catch (error) {
-        alert(error.message);
+        alert('Error during sign in: ' + error.message);
       }
     }
 
@@ -253,7 +253,7 @@
         await sendPasswordResetEmail(auth, email);
         alert('Password reset email sent!');
       } catch (error) {
-        alert(error.message);
+        alert('Error during password reset: ' + error.message);
       }
     }
 
@@ -325,7 +325,7 @@
         : entry * (1 + slPercent / (100 * leverage));
 
       const trade = {
-        userId: user.uid, // User ID for data isolation
+        userId: user.uid,
         date_time: new Date().toISOString(),
         ticker,
         entry_price: entry.toFixed(4),
