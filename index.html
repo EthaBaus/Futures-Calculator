@@ -196,52 +196,69 @@
     <a href="journal.html" style="color: #58a6ff; text-decoration: none;">View Your Journal</a>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
       projectId: "YOUR_PROJECT_ID",
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    function signUp() {
+    // Sign Up function
+    async function signUp() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => alert('Sign-Up Successful!'))
-        .catch(err => alert(err.message));
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert('Sign-Up Successful!');
+      } catch (error) {
+        alert(error.message);
+      }
     }
 
-    function signIn() {
+    // Sign In function
+    async function signIn() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => alert('Sign-In Successful!'))
-        .catch(err => alert(err.message));
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert('Sign-In Successful!');
+      } catch (error) {
+        alert(error.message);
+      }
     }
 
-    function resetPassword() {
+    // Forgot Password function
+    async function resetPassword() {
       const email = document.getElementById('email').value;
       if (!email) {
         alert('Please enter your email to reset the password.');
         return;
       }
-      auth.sendPasswordResetEmail(email)
-        .then(() => alert('Password reset email sent!'))
-        .catch(err => alert(err.message));
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert('Password reset email sent!');
+      } catch (error) {
+        alert(error.message);
+      }
     }
 
+    // Update Trade Type Style function
     function updateTradeTypeStyle(selectElement) {
       const value = selectElement.value;
       selectElement.setAttribute("data-value", value);
     }
 
+    // Calculator function
     function calculate() {
       const tradeType = document.getElementById('tradeType').value;
       const ticker = document.getElementById('ticker').value;
@@ -274,7 +291,8 @@
       `;
     }
 
-    function logTrade() {
+    // Log Trade function
+    async function logTrade() {
       const tradeType = document.getElementById('tradeType').value;
       const ticker = document.getElementById('ticker').value;
       const entry = parseFloat(document.getElementById('entry').value);
@@ -282,6 +300,11 @@
       const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
       const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
       const margin = parseFloat(document.getElementById('margin').value);
+
+      if (tradeType === "select" || isNaN(entry)) {
+        alert('Please fill in all required fields.');
+        return;
+      }
 
       const tpPrice = tradeType === "long"
         ? entry * (1 + tpPercent / (100 * leverage))
@@ -300,12 +323,13 @@
         win_loss: null,
       };
 
-      db.collection('trades').add(trade)
-        .then(() => {
-          document.getElementById('logCheckbox').checked = true;
-          alert('Trade logged successfully!');
-        })
-        .catch(err => alert('Error logging trade: ' + err.message));
+      try {
+        await addDoc(collection(db, "trades"), trade);
+        document.getElementById('logCheckbox').checked = true;
+        alert('Trade logged successfully!');
+      } catch (error) {
+        alert('Error logging trade: ' + error.message);
+      }
     }
   </script>
 </body>
