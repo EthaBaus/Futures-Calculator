@@ -198,19 +198,15 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyBcO4eJCLyyDcvEfKtqbYPTsn3rNPK5xtw",
-      authDomain: "trading-journal-emm.firebaseapp.com",
-      projectId: "trading-journal-emm",
-      storageBucket: "trading-journal-emm.firebasestorage.app",
-      messagingSenderId: "219067165137",
-      appId: "1:219067165137:web:b30c816cc63eee92e198f0",
-      measurementId: "G-V7VXL7LNNM"
-};
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+    };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
@@ -222,8 +218,10 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert('Sign-Up Successful!');
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        alert('Sign-Up Successful! Please verify your email.');
+        // Optionally send email verification here
       } catch (error) {
         alert(error.message);
       }
@@ -234,7 +232,8 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
         alert('Sign-In Successful!');
       } catch (error) {
         alert(error.message);
@@ -297,6 +296,12 @@
 
     // Log Trade function
     async function logTrade() {
+      const user = auth.currentUser;
+      if (!user) {
+        alert('Please sign in to log trades.');
+        return;
+      }
+
       const tradeType = document.getElementById('tradeType').value;
       const ticker = document.getElementById('ticker').value;
       const entry = parseFloat(document.getElementById('entry').value);
@@ -318,6 +323,7 @@
         : entry * (1 + slPercent / (100 * leverage));
 
       const trade = {
+        userId: user.uid, // User ID for data isolation
         date_time: new Date().toISOString(),
         ticker,
         entry_price: entry.toFixed(4),
