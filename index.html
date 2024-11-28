@@ -96,24 +96,28 @@
         </div>
     </div>
 
-    <script>
-        // Firebase Configuration - REPLACE WITH YOUR OWN
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, addDoc, collection } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // Replace with your own Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBcO4eJCLyyDcvEfKtqbYPTsn3rNPK5xtw",
-            authDomain: "trading-journal-emm.firebaseapp.com",
-            projectId: "trading-journal-emm",
-            storageBucket: "trading-journal-emm.firebasestorage.app",
-            messagingSenderId: "219067165137",
-            appId: "1:219067165137:web:b30c816cc63eee92e198f0"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // Authentication State Management
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             const authContainer = document.getElementById('auth-container');
             const calculatorContainer = document.getElementById('calculator-container');
             
@@ -132,7 +136,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                await auth.createUserWithEmailAndPassword(email, password);
+                await createUserWithEmailAndPassword(auth, email, password);
                 alert('Sign-Up Successful!');
             } catch (error) {
                 alert('Sign-Up Error: ' + error.message);
@@ -144,7 +148,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                await signInWithEmailAndPassword(auth, email, password);
                 alert('Sign-In Successful!');
             } catch (error) {
                 alert('Sign-In Error: ' + error.message);
@@ -160,7 +164,7 @@
             }
 
             try {
-                await auth.sendPasswordResetEmail(email);
+                await sendPasswordResetEmail(auth, email);
                 alert('Password reset email sent!');
             } catch (error) {
                 alert('Reset Password Error: ' + error.message);
@@ -169,7 +173,7 @@
 
         async function signOutUser() {
             try {
-                await auth.signOut();
+                await signOut(auth);
                 alert('Signed out successfully');
             } catch (error) {
                 alert('Sign Out Error: ' + error.message);
@@ -239,7 +243,7 @@
             const margin = parseFloat(document.getElementById('margin').value);
 
             try {
-                await db.collection("trades").add({
+                await addDoc(collection(db, "trades"), {
                     userId: user.uid,
                     ticker,
                     entryPrice,
@@ -248,7 +252,7 @@
                     slPercent,
                     tradeType,
                     margin,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: new Date()
                 });
                 alert('Trade logged successfully!');
             } catch (error) {
