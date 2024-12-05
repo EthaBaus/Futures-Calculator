@@ -9,28 +9,69 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #1f2937; /* Dark gray-blue background */
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            box-sizing: border-box;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        #trade-type[data-value="long"] {
+            background-color: #238636;
+            color: white;
+        }
+
+        #trade-type[data-value="short"] {
+            background-color: #d73a49;
+            color: white;
+        }
+
+        #trade-type[data-value=""] {
+            background-color: #0d1117;
+            color: #c9d1d9;
         }
     </style>
 </head>
-<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-start py-8 text-white">
-    <div class="container mx-auto px-4 w-full md:w-3/4 lg:w-1/2">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto px-4">
         <!-- Authentication Container -->
-        <div id="auth-container" class="bg-gray-800 p-8 rounded-lg shadow-md mb-8">
+        <div id="auth-container" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
             <h2 class="text-2xl mb-6 text-center text-blue-500">Futures Trading Journal</h2>
-            <div id="user-status" class="mb-4 text-center text-gray-400"></div>
+            <div id="user-status" class="mb-4 text-center text-gray-600"></div>
             
             <input 
                 type="email" 
                 id="email" 
                 placeholder="Email" 
-                class="w-full p-2 mb-4 border rounded bg-gray-700 text-white"
+                class="w-full p-2 mb-4 border rounded"
             >
             <input 
                 type="password" 
                 id="password" 
                 placeholder="Password" 
-                class="w-full p-2 mb-4 border rounded bg-gray-700 text-white"
+                class="w-full p-2 mb-4 border rounded"
             >
             
             <div class="flex space-x-4">
@@ -59,68 +100,76 @@
         </div>
         
         <!-- Trade Calculator Container -->
-        <div id="calculator-container" class="bg-gray-800 p-8 rounded-lg shadow-md mb-8 relative">
-            <h2 class="text-2xl mb-6 text-center">Futures TP/SL Calculator</h2>
+        <div id="calculator-container" class="hidden max-w-md mx-auto mt-8 bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-2xl mb-6 text-center text-blue-500">Trade Calculator</h2>
             
-            <label for="tradeType" class="block mb-2 font-bold">Trade Type:</label>
-            <select id="tradeType" onchange="updateTradeTypeStyle(this)" data-value="select" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
-                <option value="select" data-value="select">Select</option>
-                <option value="long" data-value="long">Long</option>
-                <option value="short" data-value="short">Short</option>
+            <input 
+                type="text" 
+                id="ticker" 
+                placeholder="Ticker Symbol" 
+                class="w-full p-2 mb-4 border rounded"
+            >
+            <input 
+                type="number" 
+                id="entry-price" 
+                placeholder="Entry Price" 
+                class="w-full p-2 mb-4 border rounded"
+            >
+            <input 
+                type="number" 
+                id="exit-price" 
+                placeholder="Exit Price" 
+                class="w-full p-2 mb-4 border rounded"
+            >
+            <select 
+                id="trade-type" 
+                class="w-full p-2 mb-4 border rounded" 
+                onchange="updateTradeTypeStyle(this)" 
+                data-value=""
+            >
+                <option value="">Select Trade Type</option>
+                <option value="long">Long</option>
+                <option value="short">Short</option>
             </select>
             
-            <label for="ticker" class="block mb-2 font-bold">Ticker:</label>
-            <input type="text" id="ticker" placeholder="e.g., LINKUSDT.P" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
+            <button 
+                onclick="logTrade()" 
+                class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600 mb-4"
+            >
+                Log Trade
+            </button>
             
-            <label for="entry" class="block mb-2 font-bold">Entry Price (USDT):</label>
-            <input type="number" id="entry" placeholder="Enter price" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
-
-            <label for="leverage" class="block mb-2 font-bold">Leverage:</label>
-            <input type="number" id="leverage" placeholder="Enter leverage (default 1)" value="1" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
-
-            <label for="tpPercent" class="block mb-2 font-bold">Target Return Percentage (%):</label>
-            <input type="number" id="tpPercent" placeholder="Enter TP %" step="0.01" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
-
-            <label for="slPercent" class="block mb-2 font-bold">Loss Limit Percentage (%):</label>
-            <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
-
-            <label for="margin" class="block mb-2 font-bold">Margin (USDT):</label>
-            <input type="number" id="margin" placeholder="Enter margin amount" class="w-full p-2 mb-4 border rounded bg-gray-700 text-white">
-
-            <button onclick="calculate()" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 mb-4">Calculate</button>
+            <button 
+                onclick="viewTradeJournal()" 
+                class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            >
+                View Trade Journal
+            </button>
             
-            <div id="results" class="mb-4"></div>
-            
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center">
-                    <input type="checkbox" id="logCheckbox" class="mr-2">
-                    <label for="logCheckbox" class="font-bold">Log this trade</label>
-                </div>
-                <button onclick="logTrade()" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Log Trade</button>
-            </div>
-
-            <div class="absolute top-4 right-4 cursor-pointer hover:scale-110 transition-transform" onclick="resetCalculator()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
+            <button 
+                onclick="signOutUser()" 
+                class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 mt-4"
+            >
+                Sign Out
+            </button>
         </div>
-        
-        <div class="bg-gray-800 p-8 rounded-lg shadow-md mb-8">
-            <h2 class="text-2xl mb-6 text-center">Futures Trading Journal</h2>
-            <p class="mb-4">Track your futures trades in our secure journal.</p>
-            <a href="https://github.com/your-username/your-repo-name" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 block text-center">
-                Go to Trading Journal
-            </a>
+
+        <!-- Trade Journal Container -->
+        <div id="journal-container" class="hidden max-w-4xl mx-auto mt-8 bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-3xl mb-6 text-center text-blue-500">My Trade Journal</h2>
+            <div id="trades-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            
+            <button 
+                onclick="backToCalculator()" 
+                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
+            >
+                Back to Calculator
+            </button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, addDoc, collection } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-
-        // Replace with your own Firebase configuration
+    <script>
+        // Firebase Configuration - REPLACE WITH YOUR OWN
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -131,21 +180,27 @@
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
         // Authentication State Management
-        onAuthStateChanged(auth, (user) => {
+        auth.onAuthStateChanged((user) => {
             const authContainer = document.getElementById('auth-container');
             const calculatorContainer = document.getElementById('calculator-container');
-            
+            const journalContainer = document.getElementById('journal-container');
+            const userStatus = document.getElementById('user-status');
+
             if (user) {
                 authContainer.style.display = 'none';
                 calculatorContainer.style.display = 'block';
+                journalContainer.style.display = 'none';
+                userStatus.textContent = `Logged in as: ${user.email}`;
             } else {
                 authContainer.style.display = 'block';
                 calculatorContainer.style.display = 'none';
+                journalContainer.style.display = 'none';
+                userStatus.textContent = 'Not Logged In';
             }
         });
 
@@ -155,7 +210,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                await auth.createUserWithEmailAndPassword(email, password);
                 alert('Sign-Up Successful!');
             } catch (error) {
                 alert('Sign-Up Error: ' + error.message);
@@ -167,7 +222,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                await auth.signInWithEmailAndPassword(email, password);
                 alert('Sign-In Successful!');
             } catch (error) {
                 alert('Sign-In Error: ' + error.message);
@@ -183,7 +238,7 @@
             }
 
             try {
-                await sendPasswordResetEmail(auth, email);
+                await auth.sendPasswordResetEmail(email);
                 alert('Password reset email sent!');
             } catch (error) {
                 alert('Reset Password Error: ' + error.message);
@@ -192,73 +247,14 @@
 
         async function signOutUser() {
             try {
-                await signOut(auth);
+                await auth.signOut();
                 alert('Signed out successfully');
             } catch (error) {
                 alert('Sign Out Error: ' + error.message);
             }
         }
 
-        // Calculator & Trade Logging Functions
-        function updateTradeTypeStyle(selectElement) {
-            const value = selectElement.value;
-            if (value === "select") {
-                selectElement.setAttribute("data-value", "select");
-                selectElement.style.backgroundColor = "transparent";
-                selectElement.style.color = "inherit";
-            } else if (value === "long") {
-                selectElement.style.backgroundColor = '#238636'; // Green for Long
-                selectElement.style.color = 'white';
-            } else if (value === "short") {
-                selectElement.style.backgroundColor = '#d73a49'; // Red for Short
-                selectElement.style.color = 'white';
-            }
-        }
-
-        function calculate() {
-            const tradeType = document.getElementById('tradeType').value;
-            const ticker = document.getElementById('ticker').value;
-            const entry = parseFloat(document.getElementById('entry').value);
-            const leverage = parseFloat(document.getElementById('leverage').value) || 1;
-            const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
-            const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
-            const margin = parseFloat(document.getElementById('margin').value);
-
-            if (!ticker || !entry || tradeType === "select") {
-                alert('Please fill in all required fields.');
-                return;
-            }
-
-            const tpPrice = tradeType === "long"
-                ? entry * (1 + tpPercent / (100 * leverage))
-                : entry * (1 - tpPercent / (100 * leverage));
-            const slPrice = tradeType === "long"
-                ? entry * (1 - slPercent / (100 * leverage))
-                : entry * (1 + slPercent / (100 * leverage));
-
-            const profit = margin * (tpPercent / 100);
-            const loss = margin * (slPercent / 100);
-
-            document.getElementById('results').innerHTML = `
-                <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
-                <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
-                <p><strong>Potential Profit:</strong> <span class="text-green-600">${profit.toFixed(2)} USDT</span></p>
-                <p><strong>Potential Loss:</strong> <span class="text-red-600">${loss.toFixed(2)} USDT</span></p>
-            `;
-        }
-
-        function resetCalculator() {
-            document.getElementById('tradeType').value = 'select';
-            updateTradeTypeStyle(document.getElementById('tradeType'));
-            document.getElementById('ticker').value = '';
-            document.getElementById('entry').value = '';
-            document.getElementById('leverage').value = '1';
-            document.getElementById('tpPercent').value = '';
-            document.getElementById('slPercent').value = '';
-            document.getElementById('margin').value = '';
-            document.getElementById('results').innerHTML = '';
-        }
-
+        // Trade Logging Function
         async function logTrade() {
             const user = auth.currentUser;
             
@@ -268,29 +264,85 @@
             }
 
             const ticker = document.getElementById('ticker').value;
-            const entryPrice = parseFloat(document.getElementById('entry').value);
-            const leverage = parseFloat(document.getElementById('leverage').value) || 1;
-            const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
-            const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
-            const tradeType = document.getElementById('tradeType').value;
-            const margin = parseFloat(document.getElementById('margin').value);
+            const entryPrice = parseFloat(document.getElementById('entry-price').value);
+            const exitPrice = parseFloat(document.getElementById('exit-price').value);
+            const tradeType = document.getElementById('trade-type').value;
+
+            if (tradeType === "") {
+                alert("Please select a trade type.");
+                return;
+            }
 
             try {
-                await addDoc(collection(db, "trades"), {
+                await db.collection("trades").add({
                     userId: user.uid,
                     ticker,
                     entryPrice,
-                    leverage,
-                    tpPercent,
-                    slPercent,
+                    exitPrice,
                     tradeType,
-                    margin,
-                    timestamp: new Date()
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    profit: exitPrice ? (tradeType === 'long' 
+                        ? exitPrice - entryPrice 
+                        : entryPrice - exitPrice) : 0
                 });
                 alert('Trade logged successfully!');
             } catch (error) {
                 alert('Error logging trade: ' + error.message);
             }
+        }
+
+        // Update Trade Type Style
+        function updateTradeTypeStyle(selectElement) {
+            const value = selectElement.value;
+            selectElement.setAttribute("data-value", value);
+        }
+
+        // View Trade Journal
+        async function viewTradeJournal() {
+            const user = auth.currentUser;
+            const tradesContainer = document.getElementById('trades-list');
+            tradesContainer.innerHTML = ''; // Clear previous trades
+
+            if (!user) {
+                alert('Please log in to view trades');
+                return;
+            }
+
+            try {
+                const querySnapshot = await db.collection("trades")
+                    .where("userId", "==", user.uid)
+                    .get();
+                
+                querySnapshot.forEach((doc) => {
+                    const trade = doc.data();
+                    const tradeCard = document.createElement('div');
+                    tradeCard.className = 'bg-white p-4 rounded shadow border';
+                    tradeCard.innerHTML = `
+                        <h3 class="text-xl font-bold mb-2">${trade.ticker}</h3>
+                        <p>Type: ${trade.tradeType.toUpperCase()}</p>
+                        <p>Entry Price: $${trade.entryPrice.toFixed(2)}</p>
+                        <p>Exit Price: $${trade.exitPrice ? trade.exitPrice.toFixed(2) : 'Pending'}</p>
+                        <p>Profit: $${trade.profit ? trade.profit.toFixed(2) : 'Calculating'}</p>
+                        <p class="text-sm text-gray-500">
+                            Date: ${trade.timestamp ? new Date(trade.timestamp.seconds * 1000).toLocaleString() : 'N/A'}
+                        </p>
+                    `;
+                    tradesContainer.appendChild(tradeCard);
+                });
+
+                // Switch to journal view
+                document.getElementById('calculator-container').style.display = 'none';
+                document.getElementById('journal-container').style.display = 'block';
+            } catch (error) {
+                console.error("Error loading trades: ", error);
+                alert('Error loading trade journal');
+            }
+        }
+
+        // Navigation Functions
+        function backToCalculator() {
+            document.getElementById('journal-container').style.display = 'none';
+            document.getElementById('calculator-container').style.display = 'block';
         }
     </script>
 </body>
