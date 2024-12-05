@@ -1,349 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Futures Trading Journal</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futures TP/SL Calculator with Journal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 20px;
+      background-color: #0d1117;
+      color: #c9d1d9;
+    }
 
-        .container {
-            background-color: #161b22;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
+    h1, h2 {
+      text-align: center;
+      color: #58a6ff;
+    }
 
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #30363d;
-            border-radius: 5px;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            box-sizing: border-box;
-        }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #161b22;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
 
-        button {
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
+    .reset-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+    }
 
-        #trade-type[data-value="long"] {
-            background-color: #238636;
-            color: white;
-        }
+    .reset-button img {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.2s ease-in-out;
+    }
 
-        #trade-type[data-value="short"] {
-            background-color: #d73a49;
-            color: white;
-        }
+    .reset-button:hover img {
+      transform: scale(1.2);
+    }
 
-        #trade-type[data-value=""] {
-            background-color: #0d1117;
-            color: #c9d1d9;
-        }
-    </style>
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      box-sizing: border-box;
+    }
+
+    select[data-value="long"] {
+      background-color: #238636;
+      color: white;
+    }
+
+    select[data-value="short"] {
+      background-color: #d73a49;
+      color: white;
+    }
+
+    select[data-value="select"] {
+      background-color: #0d1117;
+      color: #c9d1d9;
+    }
+
+    button {
+      background: #238636;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    .auth-links {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .auth-links a {
+      color: #58a6ff;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 10px;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #30363d;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #161b22;
+      color: #58a6ff;
+    }
+
+    td {
+      background: #0d1117;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="container mx-auto px-4">
-        <!-- Authentication Container -->
-        <div id="auth-container" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-2xl mb-6 text-center text-blue-500">Futures Trading Journal</h2>
-            <div id="user-status" class="mb-4 text-center text-gray-600"></div>
-            
-            <input 
-                type="email" 
-                id="email" 
-                placeholder="Email" 
-                class="w-full p-2 mb-4 border rounded"
-            >
-            <input 
-                type="password" 
-                id="password" 
-                placeholder="Password" 
-                class="w-full p-2 mb-4 border rounded"
-            >
-            
-            <div class="flex space-x-4">
-                <button 
-                    onclick="signUp()" 
-                    class="flex-1 bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-                >
-                    Sign Up
-                </button>
-                <button 
-                    onclick="signIn()" 
-                    class="flex-1 bg-green-500 text-white p-2 rounded hover:bg-green-600"
-                >
-                    Sign In
-                </button>
-            </div>
-            
-            <div class="mt-4 text-center">
-                <button 
-                    onclick="resetPassword()" 
-                    class="text-blue-500 hover:underline"
-                >
-                    Forgot Password?
-                </button>
-            </div>
-        </div>
-        
-        <!-- Trade Calculator Container -->
-        <div id="calculator-container" class="hidden max-w-md mx-auto mt-8 bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-2xl mb-6 text-center text-blue-500">Trade Calculator</h2>
-            
-            <input 
-                type="text" 
-                id="ticker" 
-                placeholder="Ticker Symbol" 
-                class="w-full p-2 mb-4 border rounded"
-            >
-            <input 
-                type="number" 
-                id="entry-price" 
-                placeholder="Entry Price" 
-                class="w-full p-2 mb-4 border rounded"
-            >
-            <input 
-                type="number" 
-                id="exit-price" 
-                placeholder="Exit Price" 
-                class="w-full p-2 mb-4 border rounded"
-            >
-            <select 
-                id="trade-type" 
-                class="w-full p-2 mb-4 border rounded" 
-                onchange="updateTradeTypeStyle(this)" 
-                data-value=""
-            >
-                <option value="">Select Trade Type</option>
-                <option value="long">Long</option>
-                <option value="short">Short</option>
-            </select>
-            
-            <button 
-                onclick="logTrade()" 
-                class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600 mb-4"
-            >
-                Log Trade
-            </button>
-            
-            <button 
-                onclick="viewTradeJournal()" 
-                class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
-            >
-                View Trade Journal
-            </button>
-            
-            <button 
-                onclick="signOutUser()" 
-                class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 mt-4"
-            >
-                Sign Out
-            </button>
-        </div>
+<body>
+  <h1>Futures TP/SL Calculator with Journal</h1>
 
-        <!-- Trade Journal Container -->
-        <div id="journal-container" class="hidden max-w-4xl mx-auto mt-8 bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-3xl mb-6 text-center text-blue-500">My Trade Journal</h2>
-            <div id="trades-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-            
-            <button 
-                onclick="backToCalculator()" 
-                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
-            >
-                Back to Calculator
-            </button>
-        </div>
+  <!-- Authentication Section -->
+  <div class="container">
+    <h2>Authentication</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <div class="auth-links">
+      <a href="#" onclick="signUp()">Sign Up</a>
+      <a href="#" onclick="signIn()">Sign In</a>
+      <a href="#" onclick="resetPassword()">Forgot Password?</a>
     </div>
+  </div>
 
-    <script>
-        // Firebase Configuration - REPLACE WITH YOUR OWN
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+  <!-- Calculator Section -->
+  <div class="container">
+    <button class="reset-button" onclick="resetCalculator()">
+      <img src="https://img.icons8.com/material-outlined/24/ffffff/delete.png" alt="Reset">
+    </button>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+    <label for="tradeType">Trade Type:</label>
+    <select id="tradeType" onchange="updateTradeTypeStyle(this)" data-value="select">
+      <option value="select">Select</option>
+      <option value="long">Long</option>
+      <option value="short">Short</option>
+    </select>
 
-        // Authentication State Management
-        auth.onAuthStateChanged((user) => {
-            const authContainer = document.getElementById('auth-container');
-            const calculatorContainer = document.getElementById('calculator-container');
-            const journalContainer = document.getElementById('journal-container');
-            const userStatus = document.getElementById('user-status');
+    <label for="ticker">Ticker:</label>
+    <input type="text" id="ticker" placeholder="e.g., LINKUSDT.P">
 
-            if (user) {
-                authContainer.style.display = 'none';
-                calculatorContainer.style.display = 'block';
-                journalContainer.style.display = 'none';
-                userStatus.textContent = `Logged in as: ${user.email}`;
-            } else {
-                authContainer.style.display = 'block';
-                calculatorContainer.style.display = 'none';
-                journalContainer.style.display = 'none';
-                userStatus.textContent = 'Not Logged In';
-            }
-        });
+    <label for="entry">Entry Price (USDT):</label>
+    <input type="number" id="entry" placeholder="Enter price">
 
-        // Authentication Functions
-        async function signUp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+    <label for="leverage">Leverage:</label>
+    <input type="number" id="leverage" placeholder="Enter leverage (default 1)" value="1">
 
-            try {
-                await auth.createUserWithEmailAndPassword(email, password);
-                alert('Sign-Up Successful!');
-            } catch (error) {
-                alert('Sign-Up Error: ' + error.message);
-            }
-        }
+    <label for="tpPercent">Target Return Percentage (%):</label>
+    <input type="number" id="tpPercent" placeholder="Enter TP %" step="0.01">
 
-        async function signIn() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+    <label for="slPercent">Loss Limit Percentage (%):</label>
+    <input type="number" id="slPercent" placeholder="Enter SL %" step="0.01">
 
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                alert('Sign-In Successful!');
-            } catch (error) {
-                alert('Sign-In Error: ' + error.message);
-            }
-        }
+    <label for="margin">Margin (USDT):</label>
+    <input type="number" id="margin" placeholder="Enter margin amount">
 
-        async function resetPassword() {
-            const email = document.getElementById('email').value;
+    <button onclick="calculate()">Calculate</button>
 
-            if (!email) {
-                alert('Please enter your email to reset the password.');
-                return;
-            }
+    <div id="results"></div>
+  </div>
 
-            try {
-                await auth.sendPasswordResetEmail(email);
-                alert('Password reset email sent!');
-            } catch (error) {
-                alert('Reset Password Error: ' + error.message);
-            }
-        }
+  <h2>Journal</h2>
+  <div class="container">
+    <table id="journal">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Ticker</th>
+          <th>Entry Price</th>
+          <th>TP Price</th>
+          <th>SL Price</th>
+          <th>Margin</th>
+          <th>Win/Loss</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-        async function signOutUser() {
-            try {
-                await auth.signOut();
-                alert('Signed out successfully');
-            } catch (error) {
-                alert('Sign Out Error: ' + error.message);
-            }
-        }
+  <script>
+    // Firebase Config (unchanged)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+    };
 
-        // Trade Logging Function
-        async function logTrade() {
-            const user = auth.currentUser;
-            
-            if (!user) {
-                alert('Please log in first');
-                return;
-            }
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-            const ticker = document.getElementById('ticker').value;
-            const entryPrice = parseFloat(document.getElementById('entry-price').value);
-            const exitPrice = parseFloat(document.getElementById('exit-price').value);
-            const tradeType = document.getElementById('trade-type').value;
+    // Authentication Functions
+    function signUp() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => alert('Sign-Up Successful!'))
+        .catch(err => alert(err.message));
+    }
 
-            if (tradeType === "") {
-                alert("Please select a trade type.");
-                return;
-            }
+    function signIn() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => alert('Sign-In Successful!'))
+        .catch(err => alert(err.message));
+    }
 
-            try {
-                await db.collection("trades").add({
-                    userId: user.uid,
-                    ticker,
-                    entryPrice,
-                    exitPrice,
-                    tradeType,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    profit: exitPrice ? (tradeType === 'long' 
-                        ? exitPrice - entryPrice 
-                        : entryPrice - exitPrice) : 0
-                });
-                alert('Trade logged successfully!');
-            } catch (error) {
-                alert('Error logging trade: ' + error.message);
-            }
-        }
+    function resetPassword() {
+      const email = document.getElementById('email').value;
+      if (!email) {
+        alert('Please enter your email to reset the password.');
+        return;
+      }
+      auth.sendPasswordResetEmail(email)
+        .then(() => alert('Password reset email sent!'))
+        .catch(err => alert(err.message));
+    }
 
-        // Update Trade Type Style
-        function updateTradeTypeStyle(selectElement) {
-            const value = selectElement.value;
-            selectElement.setAttribute("data-value", value);
-        }
+    // Calculator Functions
+    function updateTradeTypeStyle(selectElement) {
+      const value = selectElement.value;
+      selectElement.setAttribute("data-value", value);
+    }
 
-        // View Trade Journal
-        async function viewTradeJournal() {
-            const user = auth.currentUser;
-            const tradesContainer = document.getElementById('trades-list');
-            tradesContainer.innerHTML = ''; // Clear previous trades
+    function calculate() {
+      const tradeType = document.getElementById('tradeType').value;
+      const ticker = document.getElementById('ticker').value;
+      const entry = parseFloat(document.getElementById('entry').value);
+      const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+      const tpPercent = parseFloat(document.getElementById('tpPercent').value) || 0;
+      const slPercent = parseFloat(document.getElementById('slPercent').value) || 0;
+      const margin = parseFloat(document.getElementById('margin').value);
 
-            if (!user) {
-                alert('Please log in to view trades');
-                return;
-            }
+      if (!ticker || tradeType === "select" || isNaN(entry)) {
+        alert('Please fill in all required fields.');
+        return;
+      }
 
-            try {
-                const querySnapshot = await db.collection("trades")
-                    .where("userId", "==", user.uid)
-                    .get();
-                
-                querySnapshot.forEach((doc) => {
-                    const trade = doc.data();
-                    const tradeCard = document.createElement('div');
-                    tradeCard.className = 'bg-white p-4 rounded shadow border';
-                    tradeCard.innerHTML = `
-                        <h3 class="text-xl font-bold mb-2">${trade.ticker}</h3>
-                        <p>Type: ${trade.tradeType.toUpperCase()}</p>
-                        <p>Entry Price: $${trade.entryPrice.toFixed(2)}</p>
-                        <p>Exit Price: $${trade.exitPrice ? trade.exitPrice.toFixed(2) : 'Pending'}</p>
-                        <p>Profit: $${trade.profit ? trade.profit.toFixed(2) : 'Calculating'}</p>
-                        <p class="text-sm text-gray-500">
-                            Date: ${trade.timestamp ? new Date(trade.timestamp.seconds * 1000).toLocaleString() : 'N/A'}
-                        </p>
-                    `;
-                    tradesContainer.appendChild(tradeCard);
-                });
+      const tpPrice = tradeType === "long"
+        ? entry * (1 + tpPercent / (100 * leverage))
+        : entry * (1 - tpPercent / (100 * leverage));
+      const slPrice = tradeType === "long"
+        ? entry * (1 - slPercent / (100 * leverage))
+        : entry * (1 + slPercent / (100 * leverage));
 
-                // Switch to journal view
-                document.getElementById('calculator-container').style.display = 'none';
-                document.getElementById('journal-container').style.display = 'block';
-            } catch (error) {
-                console.error("Error loading trades: ", error);
-                alert('Error loading trade journal');
-            }
-        }
+      const profit = margin * (tpPercent / 100);
+      const loss = margin * (slPercent / 100);
 
-        // Navigation Functions
-        function backToCalculator() {
-            document.getElementById('journal-container').style.display = 'none';
-            document.getElementById('calculator-container').style.display = 'block';
-        }
-    </script>
+      document.getElementById('results').innerHTML = `
+        <p><strong>Take-Profit Price:</strong> ${tpPrice.toFixed(4)} USDT</p>
+        <p><strong>Stop-Loss Price:</strong> ${slPrice.toFixed(4)} USDT</p>
+        <p><strong>Potential Profit:</strong> <span style="color: #238636;">${profit.toFixed(2)} USDT</span></p>
+        <p><strong>Potential Loss:</strong> <span style="color: #d73a49;">${loss.toFixed(2)} USDT</span></p>
+      `;
+    }
+  </script>
 </body>
 </html>
